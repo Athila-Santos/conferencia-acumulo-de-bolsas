@@ -1,26 +1,12 @@
 import pandas as pd
 import requests
+import numpy as np
 
-listaId= []
+listaId = [] # inserir id dos favorecidos nesse campo
 
 tabelaGeral = pd.DataFrame()
 
 for i in range(0,len(listaId)):
-    cookies = {
-        '_hjSessionUser_3454957': 'eyJpZCI6Ijk4ZDNjNGViLWI3MzktNTFjMi05ZDhmLWI1YjkxMTRlYjBkOCIsImNyZWF0ZWQiOjE2ODY4NDcwODMwNDMsImV4aXN0aW5nIjp0cnVlfQ==',
-        '_gid': 'GA1.3.14101972.1701169066',
-        '_hjIncludedInSessionSample_3454957': '0',
-        '_hjSession_3454957': 'eyJpZCI6ImIzZGQ2OGU4LWFiMDgtNDFjNi04Y2NjLWE2OTY5NDRkNjk0NSIsImNyZWF0ZWQiOjE3MDExNjkwNjYzOTUsImluU2FtcGxlIjpmYWxzZSwic2Vzc2lvbml6ZXJCZXRhRW5hYmxlZCI6dHJ1ZX0=',
-        '_hjAbsoluteSessionInProgress': '1',
-        '_clck': '2451v3%7C2%7Cfh3%7C0%7C1427',
-        'SESSION': 'ZmRmZWQwMTktMWNhMS00NDA5LTgxYTctYTAxYzAyNDFiNTQ1',
-        '_ga': 'GA1.3.615878054.1668793527',
-        '_gat_UA-1665737-25': '1',
-        '_gat_gtag_UA_1665737_25': '1',
-        '_clsk': '16xhsxt%7C1701179296422%7C5%7C1%7Cz.clarity.ms%2Fcollect',
-        '_ga_1W47Q0QRQW': 'GS1.1.1701169065.2.1.1701179305.30.0.0',
-    }
-
     headers = {
         'authority': 'portaldatransparencia.gov.br',
         'accept': 'application/json, text/javascript, */*; q=0.01',
@@ -33,7 +19,7 @@ for i in range(0,len(listaId)):
         'sec-fetch-mode': 'cors',
         'sec-fetch-site': 'same-origin',
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36 Edg/119.0.0.0',
-        'x-requested-with': 'XMLHttpRequest',
+        'x-requested-with': 'XMLHttpRequest'
     }
 
     params = {
@@ -47,39 +33,44 @@ for i in range(0,len(listaId)):
         'ate': '30/11/2023',
         'favorecido': f'{listaId[i]}',
         'faseDespesa': '3',
-        '_': '1701179305298',
+        '_': '1701179305298'
     }
+
     print(listaId[i])
     response = requests.get(
         'https://portaldatransparencia.gov.br/despesas/favorecido/resultado',
         params=params,
-        cookies=cookies,
-        headers=headers,
+        headers=headers
     )
-    # nao passa daqui
+
     print(response)
 
     dicionario = response.json()
     dadosFavorecido = dicionario['data']
 
     tabelaDespesaIndividual = pd.DataFrame(dadosFavorecido)
+
+    num_lines = tabelaDespesaIndividual.shape[0]
+    arr = np.full(num_lines, listaId[i])
+    tabelaDespesaIndividual = tabelaDespesaIndividual.set_index(arr)
+
     tabelaGeral = pd.concat([tabelaGeral, tabelaDespesaIndividual])
 
     print(listaId[i],'foi somado a tabelaGeral')
 
-print(tabelaGeral)
 
-filtroTabela = tabelaGeral[['data','favorecido','valor','ug','orgao','planoOrcamentario']]
+tabelaGeral.to_csv('tabelaGeral.csv', encoding='utf-8-sig', index=True)
 
-filtroTabela.to_csv('consultaGeral.csv',encoding = 'utf-8-sig',index=False)
+filtroTabela = tabelaGeral[['data', 'nomeFavorecido', 'valor', 'ug', 'orgao']]
+filtroTabela.to_csv('consultaGeral.csv',encoding='utf-8-sig',index=True)
 
 #########
 
 # filtro avancado
 
-tabelaGeral_resumido = tabelaGeral[['data', 'documento', 'observacao',
+tabelaGeral_resumido = tabelaGeral[['data', 'documento',
                                     'acao', 'nomeFavorecido', 'valor',
-                                    'ug', 'orgao','planoOrcamentario']]
+                                    'ug', 'orgao']]
 
 tabelaGeral_resumido = tabelaGeral_resumido.copy()
 
@@ -99,4 +90,4 @@ fora_do_escopo = tabelaGeral_resumido.query("`Unidade Gestora` != ['PRO-REITORIA
 nomes = fora_do_escopo['Nome'].unique()
 possivel_acumulo = tabelaGeral_resumido[tabelaGeral_resumido['Nome'].isin(nomes)]
 
-possivel_acumulo.to_csv('possivel_acumulo.csv',encoding='utf-8-sig', index=False)
+possivel_acumulo.to_csv('possivel_acumulo.csv',encoding='utf-8-sig', index=True)

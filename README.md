@@ -6,4 +6,4 @@ A origem deste projeto reside na ausência de um sistema integrado do Governo Fe
 
 A solução proposta é automatizar a conferência usando a API do portal da transparência, que permite acessar os dados das despesas por favorecido de forma rápida e eficiente. Com o algoritmo em Python, é possível realizar a consulta em cerca de 10 minutos, gerando uma tabela de possíveis acúmulos ou situações de excepcionalidade na folha de pagamento, que devem ser analisadas pelo setor financeiro.
 
-#Considerações finais
+## Considerações finais
